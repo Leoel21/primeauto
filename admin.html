@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - PrimeAuto</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+
+        .login-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1a1a1a;
+        }
+
+        .login-box .logo {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .login-box .logo .red {
+            color: #E31E24;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #E31E24;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: #E31E24;
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        .btn-login:hover {
+            background: #c41a1f;
+        }
+
+        .error-message {
+            background: #ff4444;
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .admin-container {
+            display: none;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            background: #1a1a1a;
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: -2rem -2rem 2rem -2rem;
+        }
+
+        .admin-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .admin-header .red {
+            color: #E31E24;
+        }
+
+        .btn-logout {
+            background: #E31E24;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .admin-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            margin-bottom: 1.5rem;
+            color: #1a1a1a;
+            border-bottom: 3px solid #E31E24;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-field {
+            margin-bottom: 1rem;
+        }
+
+        .form-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: #E31E24;
+        }
+
+        .image-upload {
+            border: 3px dashed #ddd;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload:hover {
+            border-color: #E31E24;
+            background: #f9f9f9;
+        }
+
+        .image-upload.dragover {
+            border-color: #E31E24;
+            background: #fff5f5;
+        }
+
+        .image-preview {
+            max-width: 300px;
+            max-height: 200px;
+            margin: 1rem auto;
+            display: none;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .btn-primary {
+            background: #E31E24;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #c41a1f;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .cars-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .car-item {
+            display: grid;
+            grid-template-columns: 200px 1fr auto;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .car-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .car-item-info h3 {
+            margin-bottom: 0.5rem;
+            color: #1a1a1a;
+        }
+
+        .car-item-info p {
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .car-item-info .price {
+            color: #E31E24;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.disponible {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .badge.reservado {
+            background: #FF9800;
+            color: white;
+        }
+
+        .badge.vendido {
+            background: #666;
+            color: white;
+        }
+
+        .car-item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-small:hover {
+            opacity: 0.8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .car-item {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <div class="logo"><span class="red">PRIME</span>AUTO</div>
+            <h2>Panel de Administración</h2>
+            <div class="error-message" id="loginError"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn-login">Iniciar Sesión</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-container" id="adminContainer">
+        <div class="admin-header">
+            <h1><span class="red">PRIME</span>AUTO - Admin</h1>
+            <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+        </div>
+
+        <div class="admin-content">
+            <!-- Añadir/Editar Coche -->
+            <div class="section">
+                <h2 id="formTitle">Añadir Nuevo Coche</h2>
+                <div class="success-message" id="successMessage"></div>
+                
+                <form id="carForm">
+                    <input type="hidden" id="carId">
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Marca *</label>
+                            <input type="text" id="marca" required placeholder="Ej: BMW">
+                        </div>
+                        <div class="form-field">
+                            <label>Modelo *</label>
+                            <input type="text" id="modelo" required placeholder="Ej: X3">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Año *</label>
+                            <input type="number" id="año" required min="1990" max="2025" placeholder="2024">
+                        </div>
+                        <div class="form-field">
+                            <label>Precio (€) *</label>
+                            <input type="number" id="precio" required step="100" placeholder="35000">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Kilómetros *</label>
+                            <input type="number" id="kilometros" required placeholder="25000">
+                        </div>
+                        <div class="form-field">
+                            <label>Potencia (CV) *</label>
+                            <input type="number" id="potencia" required placeholder="150">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Tipo *</label>
+                            <select id="tipo" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="compacto">Compacto</option>
+                                <option value="sedan">Sedán</option>
+                                <option value="suv">SUV</option>
+                                <option value="deportivo">Deportivo</option>
+                                <option value="familiar">Familiar</option>
+                                <option value="electrico">Eléctrico/Híbrido</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Estado *</label>
+                            <select id="estado" required>
+                                <option value="disponible">Disponible</option>
+                                <option value="reservado">Reservado</option>
+                                <option value="vendido">Vendido</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-field full">
+                        <label>Descripción</label>
+                        <textarea id="descripcion" rows="3" placeholder="Descripción adicional del vehículo..."></textarea>
+                    </div>
+
+                    <div class="form-field full">
+                        <label>Imagen del Coche</label>
+                        <div class="image-upload" id="imageUpload">
+                            <p>📁 Arrastra una imagen aquí o haz clic para seleccionar</p>
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="image-preview" id="imagePreview">
+                            <img id="previewImg" src="" alt="Preview">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        Guardar Coche
+                    </button>
+                    <button type="button" class="btn-primary" onclick="resetForm()" style="background: #666; margin-left: 1rem;">
+                        Cancelar
+                    </button>
+                </form>
+            </div>
+
+            <!-- Lista de Coches -->
+            <div class="section">
+                <h2>Coches en el Sistema</h2>
+                <div class="loading" id="loading">Cargando coches...</div>
+                <div class="cars-list" id="carsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://opzvausifjjxsgzczcqs.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wenZhdXNpZmpqeHNnemN6Y3FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NzE4NjYsImV4cCI6MjA4MjQ0Nzg2Nn0.88CBdC-7o3Ko3sgB7iSfowzqvl5Gkp4voadGDGrlDys';
+        
+        const adminSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let currentImageFile = null;
+        let editingCarId = null;
+
+        // Check authentication
+        async function checkAuth() {
+            const { data: { session } } = await adminSupabase.auth.getSession();
+            if (session) {
+                showAdmin();
+                loadCars();
+            }
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const { data, error } = await adminSupabase.auth.signInWithPassword({
+                email,
+                password
+            });
+            
+            if (error) {
+                const errorEl = document.getElementById('loginError');
+                errorEl.textContent = 'Error: ' + error.message;
+                errorEl.style.display = 'block';
+            } else {
+                showAdmin();
+                loadCars();
+            }
+        });
+
+        // Logout
+        async function logout() {
+            await adminSupabase.auth.signOut();
+            location.reload();
+        }
+
+        function showAdmin() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('adminContainer').style.display = 'block';
+        }
+
+        // Image upload
+        const imageUpload = document.getElementById('imageUpload');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+
+        imageUpload.addEventListener('click', () => imageInput.click());
+
+        imageUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUpload.classList.add('dragover');
+        });
+
+        imageUpload.addEventListener('dragleave', () => {
+            imageUpload.classList.remove('dragover');
+        });
+
+        imageUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUpload.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageSelect(file);
+            }
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageSelect(file);
+            }
+        });
+
+        function handleImageSelect(file) {
+            currentImageFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Submit form
+        document.getElementById('carForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Guardando...';
+            
+            try {
+                let imageUrl = null;
+                
+                // Upload image if selected
+                if (currentImageFile) {
+                    const fileName = `${Date.now()}_${currentImageFile.name}`;
+                    const { data: uploadData, error: uploadError } = await adminSupabase.storage
+                        .from('coches-imagenes')
+                        .upload(fileName, currentImageFile);
+                    
+                    if (uploadError) throw uploadError;
+                    
+                    const { data: { publicUrl } } = adminSupabase.storage
+                        .from('coches-imagenes')
+                        .getPublicUrl(fileName);
+                    
+                    imageUrl = publicUrl;
+                }
+                
+                const carData = {
+                    marca: document.getElementById('marca').value,
+                    modelo: document.getElementById('modelo').value,
+                    año: parseInt(document.getElementById('año').value),
+                    precio: parseFloat(document.getElementById('precio').value),
+                    kilometros: parseInt(document.getElementById('kilometros').value),
+                    potencia: parseInt(document.getElementById('potencia').value),
+                    tipo: document.getElementById('tipo').value,
+                    estado: document.getElementById('estado').value,
+                    descripcion: document.getElementById('descripcion').value
+                };
+                
+                if (imageUrl) {
+                    carData.imagen_url = imageUrl;
+                }
+                
+                if (editingCarId) {
+                    // Update
+                    const { error } = await adminSupabase
+                        .from('coches')
+                        .update(carData)
+                        .eq('id', editingCarId);
+                    
+                    if (error) throw error;
+                    showSuccess('Coche actualizado correctamente');
+                } else {
+                    // Insert
+                    const { error } = await adminSupabase
+                        .from('coches')
+                        .insert([carData]);
+                    
+                    if (error) throw error;
+                    showSuccess('Coche añadido correctamente');
+                }
+                
+                resetForm();
+                loadCars();
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Guardar Coche';
+            }
+        });
+
+        // Load cars
+        async function loadCars() {
+            const loading = document.getElementById('loading');
+            const carsList = document.getElementById('carsList');
+            
+            loading.style.display = 'block';
+            carsList.innerHTML = '';
+            
+            const { data, error } = await adminSupabase
+                .from('coches')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            loading.style.display = 'none';
+            
+            if (error) {
+                carsList.innerHTML = '<p style="color: red;">Error al cargar coches</p>';
+                return;
+            }
+            
+            if (data.length === 0) {
+                carsList.innerHTML = '<p style="text-align: center; color: #666;">No hay coches registrados</p>';
+                return;
+            }
+            
+            data.forEach(car => {
+                const carEl = document.createElement('div');
+                carEl.className = 'car-item';
+                carEl.innerHTML = `
+                    <img src="${car.imagen_url || 'https://via.placeholder.com/200x120?text=Sin+Imagen'}" alt="${car.marca} ${car.modelo}">
+                    <div class="car-item-info">
+                        <h3>${car.marca} ${car.modelo}</h3>
+                        <p class="price">${car.precio.toLocaleString('es-ES')}€</p>
+                        <p>📅 ${car.año} | ⚡ ${car.potencia} CV | 🛣️ ${car.kilometros.toLocaleString()} km</p>
+                        <p>Tipo: ${car.tipo}</p>
+                        <span class="badge ${car.estado}">${car.estado}</span>
+                    </div>
+                    <div class="car-item-actions">
+                        <button class="btn-small btn-edit" onclick="editCar('${car.id}')">Editar</button>
+                        <button class="btn-small btn-delete" onclick="deleteCar('${car.id}')">Eliminar</button>
+                    </div>
+                `;
+                carsList.appendChild(carEl);
+            });
+        }
+
+        // Edit car
+        async function editCar(id) {
+            const { data, error } = await adminSupabase
+                .from('coches')
+                .select('*')
+                .eq('id', id)
+                .single();
+            
+            if (error || !data) {
+                alert('Error al cargar el coche');
+                return;
+            }
+            
+            editingCarId = id;
+            document.getElementById('formTitle').textContent = 'Editar Coche';
+            document.getElementById('carId').value = id;
+            document.getElementById('marca').value = data.marca;
+            document.getElementById('modelo').value = data.modelo;
+            document.getElementById('año').value = data.año;
+            document.getElementById('precio').value = data.precio;
+            document.getElementById('kilometros').value = data.kilometros;
+            document.getElementById('potencia').value = data.potencia;
+            document.getElementById('tipo').value = data.tipo;
+            document.getElementById('estado').value = data.estado;
+            document.getElementById('descripcion').value = data.descripcion || '';
+            
+            if (data.imagen_url) {
+                previewImg.src = data.imagen_url;
+                imagePreview.style.display = 'block';
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Delete car
+        async function deleteCar(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar este coche?')) {
+                return;
+            }
+            
+            const { error } = await adminSupabase
+                .from('coches')
+                .delete()
+                .eq('id', id);
+            
+            if (error) {
+                alert('Error al eliminar: ' + error.message);
+            } else {
+                showSuccess('Coche eliminado correctamente');
+                loadCars();
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            editingCarId = null;
+            document.getElementById('formTitle').textContent = 'Añadir Nuevo Coche';
+            document.getElementById('carForm').reset();
+            document.getElementById('carId').value = '';
+            imagePreview.style.display = 'none';
+            currentImageFile = null;
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

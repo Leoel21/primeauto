@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrimeAuto - Tu Concesionario de Confianza</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1a1a1a;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: #1a1a1a;
+            padding: 1.2rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo-container {
+            background: #1a1a1a;
+            padding: 0.5rem;
+        }
+
+        .logo-text {
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .logo-text .red {
+            color: #E31E24;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover {
+            color: #E31E24;
+        }
+
+        .cta-btn-header {
+            background: #E31E24;
+            color: #fff;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cta-btn-header:hover {
+            background: #c41a1f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 30, 36, 0.4);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+
+        .hero {
+            margin-top: 80px;
+            height: 90vh;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%231a1a1a"/><path d="M0 300 Q200 250 400 300 T800 300 Q1000 350 1200 300" stroke="%23E31E24" stroke-width="2" fill="none" opacity="0.3"/></svg>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            padding: 2rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 3.8rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .hero h1 .highlight {
+            color: #E31E24;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.95;
+        }
+
+        .cta-primary {
+            background: #E31E24;
+            color: #fff;
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(227, 30, 36, 0.4);
+        }
+
+        .cta-primary:hover {
+            background: #c41a1f;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(227, 30, 36, 0.5);
+        }
+
+        .features {
+            padding: 5rem 5%;
+            background: #f8f8f8;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+        .section-title .highlight {
+            color: #E31E24;
+        }
+
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+        }
+
+        .feature-card {
+            background: #fff;
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            transition: box-shadow 0.3s ease;
+            text-align: center;
+            border-top: 4px solid #E31E24;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .best-cars {
+            padding: 5rem 5%;
+            background: #fff;
+        }
+
+        .cars-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .car-card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .car-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .car-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .car-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .car-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #E31E24;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .car-info {
+            padding: 2rem;
+        }
+
+        .car-info h3 {
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
+            color: #1a1a1a;
+        }
+
+        .car-info .car-price {
+            font-size: 1.8rem;
+            color: #E31E24;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .car-specs {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #666;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .car-specs span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .car-cta {
+            width: 100%;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .car-cta:hover {
+            background: #E31E24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .no-cars {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .why-us {
+            padding: 5rem 5%;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .why-us-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .why-us-text h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            font-weight: 700;
+        }
+
+        .why-us-list {
+            list-style: none;
+        }
+
+        .why-us-list li {
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.1rem;
+        }
+
+        .why-us-list li:before {
+            content: "✓";
+            color: #E31E24;
+            font-weight: bold;
+            margin-right: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .why-us-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .stat-box {
+            background: rgba(227, 30, 36, 0.1);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid rgba(227, 30, 36, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #E31E24;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #E31E24 0%, #c41a1f 100%);
+            padding: 5rem 5%;
+            text-align: center;
+            color: #fff;
+        }
+
+        .cta-section h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.95;
+        }
+
+        .form-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(0,0,0,0.2);
+            padding: 3rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            text-align: left;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            background: rgba(255,255,255,0.95);
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #fff;
+            background: #fff;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 1.3rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .submit-btn:hover {
+            background: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .success-message {
+            display: none;
+            background: #4CAF50;
+            color: white;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            animation: fadeIn 0.5s ease;
+            font-weight: 600;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 968px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #1a1a1a;
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1.5rem;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .why-us-content {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .cars-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .why-us-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo-container">
+                <div class="logo-text">
+                    <span class="red">PRIME</span>AUTO
+                </div>
+            </div>
+            <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+            <div class="nav-links" id="navLinks">
+                <a href="#inicio">Inicio</a>
+                <a href="#vehiculos">Vehículos</a>
+                <a href="#financiacion">Financiación</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#contacto">Contacto</a>
+                <button class="cta-btn-header" onclick="scrollToForm()">Solicitar Información</button>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero" id="inicio">
+        <div class="hero-content">
+            <h1>Tu Próximo <span class="highlight">Coche Perfecto</span> Te Espera</h1>
+            <p>Más de 15 años conectando conductores con sus vehículos ideales. Calidad garantizada, financiación flexible y el mejor servicio post-venta.</p>
+            <button class="cta-primary" onclick="scrollToForm()">Ver Disponibilidad</button>
+        </div>
+    </section>
+
+    <section class="features">
+        <h2 class="section-title">¿Por qué elegir <span class="highlight">PrimeAuto</span>?</h2>
+        <div class="features-container">
+            <div class="feature-card">
+                <div class="feature-icon">🚗</div>
+                <h3>Amplio Catálogo</h3>
+                <p>Más de 200 vehículos disponibles de todas las marcas. Desde compactos urbanos hasta SUVs premium y deportivos de alta gama.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✓</div>
+                <h3>Garantía Total</h3>
+                <p>Todos nuestros vehículos incluyen garantía extendida de hasta 3 años y certificación de calidad. Tu tranquilidad es nuestra prioridad.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Financiación 0% TAE</h3>
+                <p>Planes de financiación personalizados sin intereses con aprobación en 24 horas. Hacemos tu sueño accesible desde 150€/mes.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="best-cars" id="vehiculos">
+        <h2 class="section-title">Nuestros <span class="highlight">Mejores Coches</span></h2>
+        <div class="loading" id="carsLoading">Cargando vehículos disponibles...</div>
+        <div class="cars-grid" id="carsGrid"></div>
+    </section>
+
+    <section class="why-us" id="nosotros">
+        <div class="why-us-content">
+            <div class="why-us-text">
+                <h2>15 Años de Excelencia en el Sector</h2>
+                <ul class="why-us-list">
+                    <li>Inspección rigurosa de 150 puntos en cada vehículo</li>
+                    <li>Garantía extendida incluida en todos los coches</li>
+                    <li>Servicio de mantenimiento gratuito el primer año</li>
+                    <li>Asesoramiento personalizado sin compromiso</li>
+                    <li>Entrega a domicilio en toda España</li>
+                    <li>Programa de fidelización con ventajas exclusivas</li>
+                </ul>
+            </div>
+            <div class="why-us-stats">
+                <div class="stat-box">
+                    <div class="stat-number">5.000+</div>
+                    <div class="stat-label">Clientes Satisfechos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalCars">200+</div>
+                    <div class="stat-label">Vehículos Disponibles</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Recomendaciones</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">24h</div>
+                    <div class="stat-label">Respuesta Garantizada</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section" id="contacto">
+        <h2>¿Listo para encontrar tu coche perfecto?</h2>
+        <p>Completa el formulario y recibe atención personalizada de nuestros expertos en menos de 24 horas</p>
+        
+        <div class="form-container">
+            <form id="contactForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Nombre completo *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Teléfono *</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interest">Tipo de vehículo *</label>
+                        <select id="interest" name="interest" required>
+                            <option value="">Selecciona una opción</option>
+                            <option value="compacto">Compacto</option>
+                            <option value="sedan">Sedán</option>
+                            <option value="suv">SUV</option>
+                            <option value="deportivo">Deportivo</option>
+                            <option value="familiar">Familiar</option>
+                            <option value="electrico">Eléctrico/Híbrido</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group full">
+                    <label for="budget">Presupuesto aproximado</label>
+                    <select id="budget" name="budget">
+                        <option value="">Selecciona un rango</option>
+                        <option value="menos15">Menos de 15.000€</option>
+                        <option value="15-25">15.000€ - 25.000€</option>
+                        <option value="25-35">25.000€ - 35.000€</option>
+                        <option value="35-50">35.000€ - 50.000€</option>
+                        <option value="mas50">Más de 50.000€</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="submit-btn">Solicitar Información Ahora</button>
+                
+                <div class="success-message" id="successMessage">
+                    ✓ ¡Gracias por tu interés! Nos pondremos en contacto contigo en las próximas 24 horas.
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        // Configuración Supabase
+        const SUPABASE_URL = 'https://opzvausifjjxsgzczcqs.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wenZhdXNpZmpqeHNnemN6Y3FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NzE4NjYsImV4cCI6MjA4MjQ0Nzg2Nn0.88CBdC-7o3Ko3sgB7iSfowzqvl5Gkp4voadGDGrlDys';
+        
+        const publicSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Cargar coches desde Supabase
+        async function loadCars() {
+            const loading = document.getElementById('carsLoading');
+            const carsGrid = document.getElementById('carsGrid');
+            
+            try {
+                const { data, error } = await publicSupabase
+                    .from('coches')
+                    .select('*')
+                    .eq('estado', 'disponible')
+                    .order('created_at', { ascending: false })
+                    .limit(6);
+                
+                loading.style.display = 'none';
+                
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    carsGrid.innerHTML = '<div class="no-cars">Próximamente nuevos vehículos disponibles</div>';
+                    return;
+                }
+
+                // Actualizar contador
+                document.getElementById('totalCars').textContent = data.length + '+';
+                
+                // Renderizar coches
+                carsGrid.innerHTML = data.map(car => `
+                    <div class="car-card">
+                        <div class="car-image">
+                            ${car.imagen_url ? 
+                                `<img src="${car.imagen_url}" alt="${car.marca} ${car.modelo}" onerror="this.parentElement.innerHTML='🚗<div class=&quot;car-badge&quot;>Disponible</div>'">` :
+                                '🚗'
+                            }
+                            <div class="car-badge">Disponible</div>
+                        </div>
+                        <div class="car-info">
+                            <h3>${car.marca} ${car.modelo}</h3>
+                            <div class="car-price">${car.precio.toLocaleString('es-ES')}€</div>
+                            <div class="car-specs">
+                                <span>📅 ${car.año}</span>
+                                <span>⚡ ${car.potencia} CV</span>
+                                <span>🛣️ ${car.kilometros.toLocaleString()} km</span>
+                            </div>
+                            <button class="car-cta" onclick="scrollToForm('${car.marca} ${car.modelo}')">Solicitar Información</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error al cargar coches:', error);
+                loading.textContent = 'Error al cargar vehículos. Por favor, inténtalo más tarde.';
+            }
+        }
+
+        function scrollToForm(carName = '') {
+            document.querySelector('.cta-section').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+            
+            if (carName) {
+                const nameField = document.getElementById('name');
+                nameField.focus();
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('active');
+            });
+        });
+
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                interest: document.getElementById('interest').value,
+                budget: document.getElementById('budget').value
+            };
+            
+            console.log('Datos del formulario:', formData);
+            
+            document.getElementById('successMessage').style.display = 'block';
+            
+            this.reset();
+            
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 6000);
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Cargar coches al iniciar
+        loadCars();
+    </script>
+</body>
+</html>
